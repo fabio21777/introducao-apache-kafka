@@ -14,3 +14,39 @@ Resumindo:
 - **Isso permite escalabilidade e paralelismo no processamento das mensagens.**
 
 ![alt text](image.png)
+
+
+Exemplo de uma implementação de um consumidor com um grupo de consumidores:
+
+```java
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ReceiveKafkaMessage {
+
+	private static final String SHOP_TOPIC_EVENT_NAME
+		= "SHOP_TOPIC_EVENT";
+
+	private final ReportRepository reportRepository;
+
+		@Transactional
+		@KafkaListener(
+				topics = SHOP_TOPIC_EVENT_NAME,//1
+				groupId = "group_report")//2
+		public void listenShopTopic(ShopDTO shopDTO) {
+			try {
+		    log.info("Compra recebida no tópico: {}.",
+		    		shopDTO.getIdentifier());
+		    reportRepository
+		    	.incrementShopStatus(shopDTO.getStatus());
+			} catch (Exception e) {
+				log.error("Erro no processamento da mensagem", e);
+			}
+		}
+
+}
+```
+
+1. **topics**: o nome do tópico que o consumidor irá escutar.
+2. **groupId**: o ID do grupo de consumidores.
